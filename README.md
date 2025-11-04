@@ -69,7 +69,7 @@ Follow the prompts to authorize and get your refresh token.
 # Copy the example env file
 cp .env.example .env
 
-# Edit .env with your values
+# Edit .env with the obtained values
 nano .env
 ```
 
