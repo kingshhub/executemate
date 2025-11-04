@@ -36,9 +36,10 @@ When responding:
 Remember: You're here to make the user's life easier by handling administrative tasks efficiently.
 `,
     model: {
-        id: 'openrouter/gpt-4',
-        apiKey: process.env.OPENROUTER_API_KEY
+        id: 'google/gemini-pro',
+        apiKey: process.env.GEMINI_API_KEY,
     },
+
 
     tools: {
         calendar: {
