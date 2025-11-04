@@ -41,7 +41,6 @@ app.use('/a2a', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.path}`, {
         ip: req.ip,
@@ -50,10 +49,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
 app.use('/a2a', a2aRoutes);
 
-// Root endpoint
 app.get('/', (req, res) => {
     res.json({
         message: 'ExecuMate AI Assistant',
@@ -63,11 +60,9 @@ app.get('/', (req, res) => {
     });
 });
 
-// Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
     logger.info('SIGTERM signal received: closing HTTP server');
     server.close(() => {
@@ -97,10 +92,10 @@ process.on('uncaughtException', (error: Error) => {
 
 
 const server = app.listen(PORT, () => {
-    logger.info(`🚀 ExecuMate AI Assistant running on port ${PORT}`);
-    logger.info(`📡 A2A endpoint: http://localhost:${PORT}/a2a/agent/execumate`);
-    logger.info(`💚 Health check: http://localhost:${PORT}/health`);
-    logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(` ExecuMate AI Assistant running on port ${PORT}`);
+    logger.info(` A2A endpoint: http://localhost:${PORT}/a2a/agent/execumate`);
+    logger.info(` Health check: http://localhost:${PORT}/health`);
+    logger.info(` Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;

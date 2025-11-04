@@ -2,7 +2,7 @@
 
 > Executive AI Assistant powered by Mastra and integrated with Telex.im
 
-ExecuMate is a production-ready AI assistant that helps busy professionals manage their calendars, emails, and tasks efficiently through natural language conversations on Telex.im.
+ExecuMate is an AI assistant that helps busy professionals manage their calendars, emails, and tasks efficiently through natural language conversations on Telex.im.
 
 ## 🌟 Features
 
@@ -352,5 +352,6 @@ Built for HNG Internship Stage 3 Backend Task
 
 ---
 
-Built with ❤️ using TypeScript, Mastra, and Telex.im#   e x e c u t e m a t e  
+Built with ❤️ using TypeScript, Mastra, and Telex.im#   e x e c u t e m a t e 
+ 
  
