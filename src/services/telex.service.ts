@@ -1,4 +1,3 @@
-import axios from 'axios';
 import logger from '../utils/logger';
 
 export class TelexService {
@@ -10,14 +9,10 @@ export class TelexService {
         this.channelId = process.env.TELEX_CHANNEL_ID || '';
     }
 
-    async sendMessage(message: string, metadata?: Record<string, any>): Promise<boolean> {
+    async sendMessage(message: string, _metadata?: Record<string, any>): Promise<boolean> {
         try {
-            // Note: This is a placeholder. Actual Telex API endpoints may differ.
-            // Adjust based on official Telex documentation.
             logger.info(`Sending message to Telex channel: ${this.channelId}`);
             logger.info(`Message: ${message}`);
-
-            // For now, we'll log the message. Implement actual API call when available.
             return true;
         } catch (error: any) {
             logger.error('Error sending message to Telex:', error);

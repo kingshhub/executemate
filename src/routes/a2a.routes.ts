@@ -24,7 +24,7 @@ router.post(
 );
 
 // Health check endpoint
-router.get('/health', (req: Request, res: Response) => {
+router.get('/health', (_req: Request, res: Response) => {
     res.json({
         status: 'healthy',
         service: 'ExecuMate AI',
@@ -33,8 +33,7 @@ router.get('/health', (req: Request, res: Response) => {
     });
 });
 
-// Agent info endpoint
-router.get('/agent/info', (req: Request, res: Response) => {
+router.get('/agent/info', (_req: Request, res: Response) => {
     res.json({
         name: 'ExecuMate',
         description: 'Executive AI Assistant powered by Mastra',
