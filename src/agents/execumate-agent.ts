@@ -36,9 +36,10 @@ When responding:
 Remember: You're here to make the user's life easier by handling administrative tasks efficiently.
 `,
     model: {
-        id: 'google/gemini-pro',
-        apiKey: process.env.GEMINI_API_KEY,
+        id: 'google/gemini-1.5-flash',
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
     },
+
 
 
     tools: {
