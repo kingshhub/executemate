@@ -1,7 +1,7 @@
 import { Task, ToolResult } from '../types';
 import logger from '../utils/logger';
 
-// In-memory task storage (replace with database in production)
+// In-memory task storage
 const tasks: Map<string, Task> = new Map();
 
 export const taskTool = {

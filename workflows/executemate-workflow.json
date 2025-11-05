@@ -16,7 +16,7 @@
       ],
       "type": "a2a/mastra-a2a-node",
       "typeVersion": 1,
-      "url": "YOUR_RAILWAY_URL/a2a/agent/execumate"
+      "url": "executemate-production.up.railway.app/a2a/agent/execumate"
     }
   ],
   "pinData": {},

@@ -21,11 +21,11 @@ export class TelexService {
     }
 
     async sendReminder(title: string, message: string, time: string): Promise<boolean> {
-        return this.sendMessage(`⏰ Reminder: ${title}\n${message}\nScheduled for: ${time}`);
+        return this.sendMessage(` Reminder: ${title}\n${message}\nScheduled for: ${time}`);
     }
 
     async sendSummary(summary: string): Promise<boolean> {
-        return this.sendMessage(`📊 Daily Summary\n\n${summary}`);
+        return this.sendMessage(` Daily Summary\n\n${summary}`);
     }
 
     getAgentLogsUrl(): string {
