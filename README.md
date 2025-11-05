@@ -44,7 +44,6 @@ Run this command in Telex.im:
 ```
 /telex-invite your-email@example.com
 ```
-
 Wait for organization access confirmation.
 
 ### 3. Google Cloud Setup
@@ -54,7 +53,7 @@ Wait for organization access confirmation.
 3. Enable Google Calendar API
 4. Enable Gmail API
 5. Create OAuth 2.0 credentials (Desktop app type)
-6. Download the credentials
+6. Get the credentials
 
 ### 4. Get Google Refresh Token
 ```bash
@@ -112,64 +111,13 @@ curl -X POST http://localhost:3000/a2a/agent/execumate \
   }'
 ```
 
-## 🌐 Deployment to Railway
 
-### Method 1: Railway CLI
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-# Login
-railway login
-
-# Initialize project
-railway init
-
-# Deploy
-railway up
-
-# Add environment variables
-railway variables set GOOGLE_CLIENT_ID=your-value
-railway variables set GOOGLE_CLIENT_SECRET=your-value
-# ... add all other variables
-```
-
-### Method 2: GitHub Integration
-
-1. Push code to GitHub
-2. Connect repository in Railway dashboard
-3. Add environment variables
-4. Deploy automatically
-
-### Post-Deployment
-
-1. Get your Railway URL (e.g., `execumate.up.railway.app`)
-2. Update `GOOGLE_REDIRECT_URI` in Railway variables
-3. Update the workflow JSON with your Railway URL
-4. Upload workflow to Telex.im
-
-## 📝 Telex.im Integration
-
-### Upload Workflow
-
-1. Open the `workflows/execumate-workflow.json` file
-2. Replace `YOUR_RAILWAY_URL` with your actual Railway URL
-3. In Telex.im, create a new workflow
-4. Paste the JSON content
-5. Activate the workflow
-
-### Get Channel ID
-
-1. Go to Telex.im
-2. Open any channel
-3. Look at the URL: `https://telex.im/telex-im/home/colleagues/[CHANNEL-ID]/...`
-4. Copy the first UUID (that's your channel ID)
 
 ### View Agent Logs
 
 Visit: `https://api.telex.im/agent-logs/YOUR-CHANNEL-ID.txt`
 
-## 💬 Usage Examples
+##  Usage Examples
 
 Once deployed and integrated with Telex.im, you can chat with ExecuMate:
 
@@ -219,7 +167,7 @@ Edit `src/agents/execumate-agent.ts` to:
 - Change response formats
 - Adjust AI model settings
 
-## 📚 API Documentation
+##  API Documentation
 
 ### Endpoints
 
@@ -259,7 +207,7 @@ Check service health
 #### GET /agent/info
 Get agent capabilities and info
 
-## 🧪 Testing
+##  Testing
 ```bash
 # Run tests
 npm test
@@ -274,7 +222,7 @@ npm run lint
 npm run format
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -304,7 +252,7 @@ tail -f combined.log
 railway logs
 ```
 
-## 📖 Project Structure
+##  Project Structure
 ```
 execumate-ai/
 ├── src/
@@ -352,6 +300,4 @@ Built for HNG Internship Stage 3 Backend Task
 
 ---
 
-Built with ❤️ using TypeScript, Mastra, and Telex.im#   e x e c u t e m a t e 
- 
- 
+Built with ❤️ using TypeScript, Mastra, and Telex.im
