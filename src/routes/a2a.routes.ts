@@ -9,8 +9,8 @@ const router = Router();
 
 // A2A endpoint for Telex
 router.post(
-    '/a2a/agent/execumate',
-    // validateRequest(TelexRequestSchema),
+    '/agent/execumate',
+    validateRequest(TelexRequestSchema),
     asyncHandler(async (req: Request, res: Response) => {
         logger.info('Received A2A request', {
             messageCount: req.body.messages?.length,

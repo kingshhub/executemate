@@ -38,7 +38,7 @@ Remember: You're here to make the user's life easier by handling administrative 
     model: {
         id: 'google/gemini-2.5-flash',
         provider: 'google',
-        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
+        apiKey: process.env.GEMINI_API_KEY
     },
 
     tools: {
