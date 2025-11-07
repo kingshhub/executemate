@@ -7,9 +7,9 @@ import logger from '../utils/logger';
 
 const router = Router();
 
-// A2A endpoint for Telex integration
+// A2A endpoint for Telex
 router.post(
-    '/agent/execumate',
+    '/a2a/agent/execumate',
     validateRequest(TelexRequestSchema),
     asyncHandler(async (req: Request, res: Response) => {
         logger.info('Received A2A request from Telex', {
