@@ -12,16 +12,36 @@ router.post(
     '/a2a/agent/execumate',
     validateRequest(TelexRequestSchema),
     asyncHandler(async (req: Request, res: Response) => {
-        logger.info('Received A2A request from Telex', {
+        logger.info('Received A2A request', {
             messageCount: req.body.messages?.length,
             channelId: req.body.channelId,
         });
 
-        const response = await processAgentRequest(req.body);
+        try {
+            const response = await processAgentRequest(req.body);
 
-        res.json(response);
+            if (!response || !response.content) {
+                logger.warn('Empty response from agent');
+                return res.status(200).json({
+                    role: 'assistant',
+                    content: 'Sorry, I couldn’t generate a response at the moment.',
+                    metadata: { timestamp: new Date().toISOString() },
+                });
+            }
+
+            logger.info('Sending response to Telex', { response });
+            return res.status(200).json(response);
+        } catch (error: any) {
+            logger.error('Error in A2A route', { error: error.message });
+            return res.status(500).json({
+                role: 'assistant',
+                content: 'ExecuMate encountered an error while processing your request.',
+                metadata: { timestamp: new Date().toISOString(), error: error.message },
+            });
+        }
     })
 );
+
 
 // Health check endpoint
 router.get('/health', (_req: Request, res: Response) => {
