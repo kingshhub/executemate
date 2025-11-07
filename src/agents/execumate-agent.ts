@@ -42,39 +42,39 @@ Remember: You're here to make the user's life easier by handling administrative 
     },
 
     tools: {
-        calendar: {
-            description: 'Manage calendar events',
-            input: z.object({
-                action: z.string().describe('Action to perform: list_events, get_today, get_week, create_event, update_event, delete_event'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
-            }),
-            execute: async ({ context }: any) => {
-                const { action, params } = context;
-                return await calendarTool.execute(action, params);
-            },
-        },
-        gmail: {
-            description: 'Manage Gmail messages',
-            input: z.object({
-                action: z.string().describe('Action to perform: list_messages, send_message, draft_reply, get_unread_count'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
-            }),
-            execute: async ({ context }: any) => {
-                const { action, params } = context;
-                return await gmailTool.execute(action, params);
-            },
-        },
-        tasks: {
-            description: 'Manage tasks',
-            input: z.object({
-                action: z.string().describe('Action to perform: create_task, list_tasks, update_task, complete_task, delete_task'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
-            }),
-            execute: async ({ context }: any) => {
-                const { action, params } = context;
-                return await taskTool.execute(action, params);
-            },
-        },
+        // calendar: {
+        //     description: 'Manage calendar events',
+        //     input: z.object({
+        //         action: z.string().describe('Action to perform: list_events, get_today, get_week, create_event, update_event, delete_event'),
+        //         params: z.record(z.any()).optional().describe('Parameters for the action'),
+        //     }),
+        //     execute: async ({ context }: any) => {
+        //         const { action, params } = context;
+        //         return await calendarTool.execute(action, params);
+        //     },
+        // },
+        // gmail: {
+        //     description: 'Manage Gmail messages',
+        //     input: z.object({
+        //         action: z.string().describe('Action to perform: list_messages, send_message, draft_reply, get_unread_count'),
+        //         params: z.record(z.any()).optional().describe('Parameters for the action'),
+        //     }),
+        //     execute: async ({ context }: any) => {
+        //         const { action, params } = context;
+        //         return await gmailTool.execute(action, params);
+        //     },
+        // },
+        // tasks: {
+        //     description: 'Manage tasks',
+        //     input: z.object({
+        //         action: z.string().describe('Action to perform: create_task, list_tasks, update_task, complete_task, delete_task'),
+        //         params: z.record(z.any()).optional().describe('Parameters for the action'),
+        //     }),
+        //     execute: async ({ context }: any) => {
+        //         const { action, params } = context;
+        //         return await taskTool.execute(action, params);
+        //     },
+        // },
     },
 });
 
