@@ -61,7 +61,6 @@ app.get('/', (_req, res) => {
         documentation: '/agent/info',
     });
 });
-
 app.use(notFoundHandler);
 app.use(errorHandler);
 
