@@ -40,11 +40,9 @@ const limiter = rateLimit({
 
 app.use('/a2a', limiter);
 
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
 app.use((req: Request, _res, next) => {
     logger.info(`${req.method} ${req.path}`, {
         ip: req.ip,
@@ -53,10 +51,8 @@ app.use((req: Request, _res, next) => {
     next();
 });
 
-// Routes
 app.use('/a2a', a2aRoutes);
 
-// Root endpoint
 app.get('/', (_req, res) => {
     res.json({
         message: 'ExecuMate AI Assistant',
@@ -66,7 +62,6 @@ app.get('/', (_req, res) => {
     });
 });
 
-// Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
