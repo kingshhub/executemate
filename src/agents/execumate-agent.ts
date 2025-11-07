@@ -81,20 +81,22 @@ Remember: You're here to make the user's life easier by handling administrative 
 export async function processAgentRequest(request: TelexRequest): Promise<TelexResponse> {
     try {
         logger.info('Processing agent request', {
-            messageCount: request.messages.length,
-            userId: request.userId,
+            userId: request.params.message.metadata?.telex_user_id,
+            messageId: request.params.message.messageId
         });
 
-        // Extract the latest user message
-        const userMessages = request.messages.filter(m => m.role === 'user');
-        const latestMessage = userMessages[userMessages.length - 1];
+        // Extract the message text from parts
+        const messageParts = request.params.message.parts;
+        const textPart = messageParts.find(part =>
+            part.kind === 'text' && part.text && !Array.isArray(part.data)
+        );
 
-        if (!latestMessage) {
-            throw new Error('No user message found in request');
+        if (!textPart || !textPart.text) {
+            throw new Error('No text message found in request');
         }
 
         // Generate response using Mastra agent
-        const response = await execumateAgent.generate(latestMessage.content);
+        const response = await execumateAgent.generate(textPart.text);
 
         logger.info('Agent response generated', {
             responseLength: response.text?.length || 0,

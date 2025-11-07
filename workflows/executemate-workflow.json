@@ -16,7 +16,7 @@
       ],
       "type": "a2a/mastra-a2a-node",
       "typeVersion": 1,
-      "url": "executemate-production.up.railway.app/a2a/agent/execumate"
+      "url": "https://harmonious-flexibility-production.up.railway.app/a2a/agent/execumate"
     }
   ],
   "pinData": {},

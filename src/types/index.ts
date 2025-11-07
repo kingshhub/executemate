@@ -12,10 +12,32 @@ export type TelexMessage = z.infer<typeof TelexMessageSchema>;
 
 // Telex A2A Request Schema
 export const TelexRequestSchema = z.object({
-    messages: z.array(TelexMessageSchema),
-    context: z.record(z.any()).optional(),
-    userId: z.string().optional(),
-    channelId: z.string().optional(),
+    jsonrpc: z.literal('2.0'),
+    id: z.string(),
+    method: z.literal('message/send'),
+    params: z.object({
+        message: z.object({
+            kind: z.literal('message'),
+            role: z.string(),
+            parts: z.array(z.object({
+                kind: z.string(),
+                text: z.string().optional(),
+                data: z.array(z.any()).optional()
+            })),
+            metadata: z.object({
+                telex_user_id: z.string(),
+                telex_channel_id: z.string(),
+                org_id: z.string()
+            }).optional(),
+            messageId: z.string()
+        }),
+        configuration: z.object({
+            acceptedOutputModes: z.array(z.string()),
+            historyLength: z.number(),
+            pushNotificationConfig: z.any().optional(),
+            blocking: z.boolean()
+        })
+    })
 });
 
 export type TelexRequest = z.infer<typeof TelexRequestSchema>;
