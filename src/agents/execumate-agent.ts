@@ -2,9 +2,20 @@ import { Agent } from '@mastra/core/agent';
 import { calendarTool } from '../tools/calendar-tool';
 import { gmailTool } from '../tools/gmail-tool';
 import { taskTool } from '../tools/task-tool';
-import { TelexRequest, TelexResponse } from '../types';
+import { TelexRequest, TelexResponse, ToolResult } from '../types';
 import logger from '../utils/logger';
 import { z } from 'zod';
+
+interface AgentResponse {
+    text?: string;
+    toolCalls?: Array<{
+        toolName: string;
+        args: {
+            action: string;
+            params?: Record<string, any>;
+        };
+    }>;
+}
 
 export const execumateAgent = new Agent({
     name: 'ExecuMate',
@@ -71,10 +82,32 @@ Remember: You're here to make the user's life easier by handling administrative 
         calendar: {
             description: 'Manage calendar events',
             input: z.object({
-                action: z.string().describe('Action to perform: list_events, get_today, get_week, create_event, update_event, delete_event'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
+                action: z.enum([
+                    'list_events',
+                    'get_today',
+                    'get_week',
+                    'create_event',
+                    'update_event',
+                    'delete_event'
+                ]).describe('Action to perform with the calendar'),
+                params: z.object({
+                    summary: z.string().optional(),
+                    description: z.string().optional(),
+                    start: z.object({
+                        dateTime: z.string(),
+                        timeZone: z.string().optional()
+                    }).optional(),
+                    end: z.object({
+                        dateTime: z.string(),
+                        timeZone: z.string().optional()
+                    }).optional(),
+                    attendees: z.array(z.object({
+                        email: z.string(),
+                        displayName: z.string().optional()
+                    })).optional()
+                }).optional(),
             }),
-            execute: async ({ context }: any) => {
+            execute: async ({ context }: { context: { action: string; params?: Record<string, any> } }) => {
                 const { action, params } = context;
                 return await calendarTool.execute(action, params);
             },
@@ -82,10 +115,21 @@ Remember: You're here to make the user's life easier by handling administrative 
         gmail: {
             description: 'Manage Gmail messages',
             input: z.object({
-                action: z.string().describe('Action to perform: list_messages, send_message, draft_reply, get_unread_count'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
+                action: z.enum([
+                    'list_messages',
+                    'send_message',
+                    'draft_reply',
+                    'get_unread_count'
+                ]).describe('Action to perform with Gmail'),
+                params: z.object({
+                    to: z.string().optional(),
+                    subject: z.string().optional(),
+                    body: z.string().optional(),
+                    messageId: z.string().optional(),
+                    query: z.string().optional()
+                }).optional(),
             }),
-            execute: async ({ context }: any) => {
+            execute: async ({ context }: { context: { action: string; params?: Record<string, any> } }) => {
                 const { action, params } = context;
                 return await gmailTool.execute(action, params);
             },
@@ -93,10 +137,29 @@ Remember: You're here to make the user's life easier by handling administrative 
         tasks: {
             description: 'Manage tasks',
             input: z.object({
-                action: z.string().describe('Action to perform: create_task, list_tasks, update_task, complete_task, delete_task'),
-                params: z.record(z.any()).optional().describe('Parameters for the action'),
+                action: z.enum([
+                    'create_task',
+                    'list_tasks',
+                    'update_task',
+                    'complete_task',
+                    'delete_task'
+                ]).describe('Action to perform with tasks'),
+                params: z.object({
+                    title: z.string().optional(),
+                    description: z.string().optional(),
+                    priority: z.enum(['low', 'medium', 'high']).optional(),
+                    dueDate: z.string().optional(),
+                    status: z.enum(['pending', 'in-progress', 'completed']).optional(),
+                    taskId: z.string().optional(),
+                    tasks: z.array(z.object({
+                        title: z.string(),
+                        description: z.string().optional(),
+                        priority: z.enum(['low', 'medium', 'high']).optional(),
+                        dueDate: z.string().optional()
+                    })).optional()
+                }).optional(),
             }),
-            execute: async ({ context }: any) => {
+            execute: async ({ context }: { context: { action: string; params?: Record<string, any> } }) => {
                 const { action, params } = context;
                 return await taskTool.execute(action, params);
             },
@@ -111,43 +174,131 @@ export async function processAgentRequest(request: TelexRequest): Promise<TelexR
             messageId: request.params.message.messageId
         });
 
-        // Extract the message text from parts
+        // Extract and combine all relevant text from message parts
         const messageParts = request.params.message.parts;
-        const textPart = messageParts.find(part =>
-            part.kind === 'text' && part.text && !Array.isArray(part.data)
-        );
+        const textParts = messageParts
+            .filter(part => part.kind === 'text' && part.text && !Array.isArray(part.data))
+            .map(part => part.text as string);
 
-        if (!textPart || !textPart.text) {
-            throw new Error('No text message found in request');
+        if (textParts.length === 0) {
+            throw new Error('No valid text content found in request');
         }
 
-        // Generate response using Mastra agent
-        const response = await execumateAgent.generate(textPart.text);
+        // Combine all text parts, removing any HTML tags and normalizing whitespace
+        const cleanText = textParts
+            .join('\n')
+            .replace(/<[^>]*>/g, '') // Remove HTML tags
+            .replace(/\s+/g, ' ')    // Normalize whitespace
+            .trim();
 
-        logger.info('Agent response generated', {
-            responseLength: response.text?.length || 0,
-            toolCallsCount: response.toolCalls?.length || 0
+        if (!cleanText) {
+            throw new Error('No meaningful text content after cleaning');
+        }
+
+        logger.info('Processed message text:', {
+            originalParts: textParts.length,
+            cleanedText: cleanText.substring(0, 100) + '...'
         });
 
+        // Generate response using Mastra agent with timeout and error handling
+        let response: AgentResponse;
+        try {
+            const generatePromise = execumateAgent.generate(cleanText) as unknown as Promise<AgentResponse>;
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Response generation timed out')), 30000)
+            );
+
+            const timeoutId = (timeoutPromise as any)[Symbol.for('timeoutId')];
+            response = await Promise.race([generatePromise, timeoutPromise]);
+
+            if (!response) {
+                throw new Error('Empty response from agent');
+            }
+
+            if (!response.text && !response.toolCalls?.length) {
+                throw new Error('Response contains neither text nor tool calls');
+            }
+
+            logger.info('Agent response generated', {
+                responseLength: response.text?.length || 0,
+                toolCallsCount: response.toolCalls?.length || 0,
+                hasText: !!response.text,
+                hasToolCalls: !!response.toolCalls?.length
+            });
+
+            // Cancel timeout timer
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error('Error generating agent response:', {
+                error: errorMessage,
+                requestText: cleanText.substring(0, 100) + '...'
+            });
+            throw new Error('Failed to generate response: ' + errorMessage);
+        }
+
         // Process tool calls and collect results
-        const toolResults = [];
-        const toolsUsed = [];
+        const toolResults: ToolResult[] = [];
+        const toolsUsed: string[] = [];
+
+        interface ToolCall {
+            toolName: string;
+            args: {
+                action: string;
+                params?: Record<string, any>;
+            };
+        }
 
         if (response.toolCalls && response.toolCalls.length > 0) {
             for (const toolCall of response.toolCalls) {
                 if (typeof toolCall === 'object' && 'toolName' in toolCall && 'args' in toolCall) {
-                    const { toolName, args } = toolCall as { toolName: string; args: { action: string; params?: Record<string, any> } };
+                    const { toolName, args } = toolCall as ToolCall;
                     toolsUsed.push(toolName);
 
                     try {
+                        let result: ToolResult;
                         if (toolName === 'tasks') {
-                            const result = await taskTool.execute(args.action, args.params || {});
+                            // Special handling for task creation with multiple tasks
+                            if (args.action === 'create_task' && Array.isArray(args.params?.tasks)) {
+                                const batchResult: ToolResult = {
+                                    success: true,
+                                    data: [],
+                                    message: "Multiple tasks created successfully"
+                                };
+
+                                for (const task of args.params.tasks) {
+                                    const taskResult = await taskTool.execute('create_task', {
+                                        ...task,
+                                        priority: task.priority || args.params.priority || 'medium',
+                                        dueDate: task.dueDate || args.params.dueDate,
+                                        description: task.description || args.params.description
+                                    });
+
+                                    if (taskResult.success) {
+                                        (batchResult.data as any[]).push(taskResult.data);
+                                        if (taskResult.message) {
+                                            batchResult.message += `\n- ${taskResult.message}`;
+                                        }
+                                    }
+                                }
+                                result = batchResult;
+                            } else {
+                                result = await taskTool.execute(args.action, args.params || {});
+                            }
                             toolResults.push(result);
                         } else if (toolName === 'calendar') {
-                            const result = await calendarTool.execute(args.action, args.params || {});
+                            result = await calendarTool.execute(args.action, args.params || {});
                             toolResults.push(result);
                         } else if (toolName === 'gmail') {
-                            const result = await gmailTool.execute(args.action, args.params || {});
+                            result = await gmailTool.execute(args.action, args.params || {});
+                            toolResults.push(result);
+                        } else {
+                            result = {
+                                success: false,
+                                error: `Unknown tool: ${toolName}`
+                            };
                             toolResults.push(result);
                         }
                     } catch (error: unknown) {
