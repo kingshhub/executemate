@@ -11,6 +11,32 @@ export const execumateAgent = new Agent({
     instructions: `
 You are ExecuMate, an advanced AI executive assistant designed to help busy professionals manage their calendars, emails, and tasks efficiently.
 
+Tool Usage Guidelines:
+
+1. Task Management (tasks tool):
+   - For creation: Use 'create_task' with title, priority, description, due date
+   - For listing: Use 'list_tasks' with status/priority filters
+   - For updates: Use 'update_task' or 'complete_task' as needed
+   Example:
+   {
+     action: "create_task",
+     params: {
+       title: "Walk the dog",
+       priority: "medium",
+       description: "Daily dog walking task"
+     }
+   }
+
+2. Calendar Management (calendar tool):
+   - Use appropriate actions: list_events, create_event, update_event
+   - Include all relevant details: time, date, attendees
+   - Consider timezone and business hours
+
+3. Email Management (gmail tool):
+   - Handle messages with list_messages, send_message, draft_reply
+   - Provide clear subject lines and content
+   - Include necessary attachments or references
+
 Your capabilities include:
 1. **Calendar Management**: Schedule, update, and query calendar events
 2. **Email Management**: Read, draft, and send emails via Gmail
@@ -100,22 +126,63 @@ export async function processAgentRequest(request: TelexRequest): Promise<TelexR
 
         logger.info('Agent response generated', {
             responseLength: response.text?.length || 0,
+            toolCallsCount: response.toolCalls?.length || 0
         });
 
-        // Extract tool names from tool calls
-        const toolsUsed = response.toolCalls?.map(tc => {
-            if (typeof tc === 'object' && 'toolName' in tc) {
-                return tc.toolName;
+        // Process tool calls and collect results
+        const toolResults = [];
+        const toolsUsed = [];
+
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            for (const toolCall of response.toolCalls) {
+                if (typeof toolCall === 'object' && 'toolName' in toolCall && 'args' in toolCall) {
+                    const { toolName, args } = toolCall as { toolName: string; args: { action: string; params?: Record<string, any> } };
+                    toolsUsed.push(toolName);
+
+                    try {
+                        if (toolName === 'tasks') {
+                            const result = await taskTool.execute(args.action, args.params || {});
+                            toolResults.push(result);
+                        } else if (toolName === 'calendar') {
+                            const result = await calendarTool.execute(args.action, args.params || {});
+                            toolResults.push(result);
+                        } else if (toolName === 'gmail') {
+                            const result = await gmailTool.execute(args.action, args.params || {});
+                            toolResults.push(result);
+                        }
+                    } catch (error: unknown) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                        logger.error(`Error executing tool ${toolName}:`, error);
+                        toolResults.push({ success: false, error: errorMessage });
+                    }
+                }
             }
-            return 'unknown';
-        }) || [];
+        }
+
+        // Construct final response based on tool results
+        let finalContent = response.text || '';
+        if (toolResults.length > 0) {
+            const successResults = toolResults.filter(r => r.success);
+            if (successResults.length > 0) {
+                const messages = successResults
+                    .map(r => (r as any).message || (r as any).data?.message)
+                    .filter(Boolean);
+                if (messages.length > 0) {
+                    finalContent += '\n\n' + messages.join('\n');
+                }
+            }
+        }
 
         return {
             role: 'assistant',
-            content: response.text || 'I apologize, but I was unable to process your request. Please try again.',
+            content: finalContent || 'I apologize, but I was unable to process your request. Please try again.',
             metadata: {
                 timestamp: new Date().toISOString(),
                 toolsUsed,
+                toolResults: toolResults.map(r => ({
+                    success: r.success,
+                    message: (r as any).message || (r as any).data?.message || (r as any).error
+                }))
             },
         };
     } catch (error: any) {
